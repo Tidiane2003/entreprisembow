@@ -1,7 +1,7 @@
 // Fonctionnement hors ligne : l'application est gardée en mémoire sur l'appareil.
 // Avec internet, la dernière version est toujours récupérée ; sans internet, la copie enregistrée s'ouvre.
 // Augmenter VERSION à chaque mise à jour des fichiers pour forcer le rafraîchissement.
-const VERSION = 'v10';
+const VERSION = 'v11';
 const CACHE = 'sm-devis-' + VERSION;
 const FILES = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './icon-192-maskable.png', './icon-512-maskable.png'];
 
