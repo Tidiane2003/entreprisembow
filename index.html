@@ -67,16 +67,6 @@ textarea{font:12px monospace;width:100%;padding:8px;border:1px solid var(--line)
 .sh .sg.hs div{height:50mm}.sh .sg.hs .stp{left:50%;right:auto;top:auto;bottom:2mm;transform:translateX(-50%);max-height:36mm;max-width:92%;width:auto;height:auto}
 #prev.nostamp .sg.hs div{height:15mm}
 </style>
-<style>
-.emp-table{width:100%;border:1px solid var(--line);border-collapse:collapse;border-spacing:0;table-layout:fixed;background:var(--card)}
-.emp-table th,.emp-table td{border:1px solid var(--line);box-sizing:border-box}
-.emp-table th:nth-child(1),.emp-table td:nth-child(1){width:32%}
-.emp-table th:nth-child(2),.emp-table td:nth-child(2){width:28%}
-.emp-table th:nth-child(3),.emp-table td:nth-child(3){width:20%}
-.emp-table th.emp-action,.emp-table td.emp-action{width:20%;white-space:nowrap;text-align:center}
-.emp-table-wrap{overflow:visible;width:100%;margin:0;padding:0}
-@media print{.emp-table-wrap{overflow:visible}.emp-table{width:100%;border-collapse:collapse;border:1px solid #000}.emp-table th,.emp-table td{border:1px solid #000}.emp-table .emp-action{display:none}.emp-table th:nth-child(3),.emp-table td:nth-child(3){width:30%}.emp-table th:nth-child(1),.emp-table td:nth-child(1){width:35%}.emp-table th:nth-child(2),.emp-table td:nth-child(2){width:35%}}
-</style>
 <style>.pdfw{background:#fff;color:#000}.pdfw .sh{box-shadow:none;padding:0;max-width:none;margin:0}.pdfw .sh table.pg{min-height:271mm}.pdfw .sh table.pg>tbody>tr{height:100%}.pdfw .sh .mdg{width:96%;margin-left:auto;margin-right:auto}.pdfw .sh .mdg th:nth-child(1),.pdfw .sh .mdg td:nth-child(1){width:52%;text-align:left}.pdfw .sh .mdg th:nth-child(2),.pdfw .sh .mdg td:nth-child(2){width:12%}.pdfw .sh .mdg th:nth-child(3),.pdfw .sh .mdg td:nth-child(3),.pdfw .sh .mdg th:nth-child(4),.pdfw .sh .mdg td:nth-child(4){width:18%}.pdfw.nostamp .stp{display:none}.pdfw.nostamp .sg.hs div{height:15mm}</style>
 </head><body>
 <nav><h1>ENTREPRISE SENY MBOW<small>GARAGE AUTO</small></h1>
@@ -260,26 +250,6 @@ function imprimer(){toast("Si rien ne s'ouvre, ouvre l'application directement d
 function dlPdf(){const d=db.docs.find(x=>x.id===curDoc);if(!d)return;
  if(typeof html2pdf==='undefined'){window.print();return}
  const w=document.createElement('div');w.className='pdfw'+(avecCachet?'':' nostamp');w.innerHTML=$('#sheet').innerHTML;
- // Verrouillage des bordures pour le rendu html2canvas/html2pdf.
- // Le tableau Employés est généré dynamiquement : on force les quatre côtés
- // du tableau ET de chaque cellule dans la copie réellement envoyée au PDF.
- w.querySelectorAll('table').forEach(table=>{
-   table.style.width='100%';
-   table.style.borderCollapse='collapse';
-   table.style.borderSpacing='0';
-   table.style.border='1px solid #000';
-   table.style.boxSizing='border-box';
-   table.querySelectorAll('th,td').forEach(cell=>{
-     cell.style.border='1px solid #000';
-     cell.style.boxSizing='border-box';
-   });
- });
- w.querySelectorAll('.tw').forEach(box=>{
-   box.style.width='100%';
-   box.style.margin='0';
-   box.style.padding='0';
-   box.style.overflow='visible';
- });
  const nom=((d.type==='facture'?'Facture':'Devis')+'-'+d.numero+'-'+(cli(d.clientId).nom||'')).replace(/[^\w\-]+/g,'_')+'.pdf';
  toast('Création du PDF…');
  html2pdf().set({margin:12,filename:nom,image:{type:'jpeg',quality:0.98},html2canvas:{scale:2,useCORS:true},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},pagebreak:{mode:['css','legacy']}}).from(w).outputPdf('blob').then(b=>{const u=URL.createObjectURL(b);let el=document.getElementById('pdfok');if(!el){el=document.createElement('div');el.id='pdfok';el.style.cssText='position:fixed;left:0;right:0;bottom:0;z-index:2147483000;background:#0B2545;color:#fff;padding:14px 16px;text-align:center;font-size:16px;box-shadow:0 -2px 10px rgba(0,0,0,.3)';document.body.appendChild(el)}
@@ -355,12 +325,12 @@ render=function(){const A=isA();_nav.querySelectorAll('.adm').forEach(b=>b.style
  if(AV.includes(view)){if(!A){toast(NOA);view='dash';return go('dash')}return view==='recap'?recap():crud(view)}
  _r0()};
 let showSal=false,rcM=today().slice(0,7);
-const CR={emp:{t:'Employés',n:"Visible uniquement par l'administrateur. Les salaires sont masqués tant que tu ne les affiches pas.",f:[['nom','Nom'],['poste','Poste'],['tel','Téléphone'],['sal','Salaire mensuel (FCFA)','number']]},
+const CR={emp:{t:'Employés',n:"Visible uniquement par l'administrateur. Les salaires sont masqués tant que tu ne les affiches pas.",f:[['nom','Nom'],['sal','Salaire mensuel (FCFA)','number']]},
 ent:{t:'Entreprises partenaires',n:"Les entreprises avec lesquelles vous travaillez. Visible uniquement par l'administrateur.",f:[['nom',"Nom de l'entreprise"],['act','Domaine / collaboration'],['contact','Personne à contacter'],['tel','Téléphone'],['mail','E-mail'],['note','Notes']]}};
-function crud(k){const c=CR[k];db[k]=db[k]||[];const L=db[k];const tf=k==='emp'?c.f.filter(f=>f[0]!=='tel'):c.f;
+function crud(k){const c=CR[k];db[k]=db[k]||[];const L=db[k];
  $('#m').innerHTML=`<h2>${c.t}</h2><div class="note">${c.n}</div>${k==='emp'?`<div class="bar"><button class="b s" onclick="showSal=!showSal;crud('emp')">${showSal?'🙈 Masquer':'👁 Afficher'} les salaires</button></div>`:''}
  <div class="g2">${c.f.map(f=>`<div><label>${f[1]}</label><input id="cr_${f[0]}" ${f[2]?`type="${f[2]}" min="0"`:''}></div>`).join('')}</div><div class="bar"><button class="b" onclick="crAdd('${k}')">Ajouter</button></div>
- <div class="tw emp-table-wrap"><table class="emp-table"><thead><tr>${tf.map(f=>`<th>${f[1]}</th>`).join('')}<th class="emp-action">Action</th></tr></thead><tbody>${L.map(e=>`<tr>${tf.map(f=>`<td>${f[0]==='nom'?'<b>'+esc(e.nom)+'</b>':f[0]==='sal'?(showSal?F(e.sal||0)+' FCFA':'••••••'):esc(e[f[0]])}</td>`).join('')}<td class="emp-action"><button class="b s" onclick="crEd('${k}',${e.id})">Modifier</button> <button class="b s" onclick="crDel('${k}',${e.id})">Supprimer</button></td></tr>`).join('')||`<tr><td colspan="${tf.length+1}">Aucune entrée.</td></tr>`}</tbody></table></div>
+ <div class="tw"><table><tr>${c.f.map(f=>`<th>${f[1]}</th>`).join('')}<th></th></tr>${L.map(e=>`<tr>${c.f.map(f=>`<td>${f[0]==='nom'?'<b>'+esc(e.nom)+'</b>':f[0]==='sal'?(showSal?F(e.sal||0)+' FCFA':'••••••'):esc(e[f[0]])}</td>`).join('')}<td><button class="b s" onclick="crEd('${k}',${e.id})">Modifier</button> <button class="b s" onclick="crDel('${k}',${e.id})">Supprimer</button></td></tr>`).join('')||`<tr><td colspan="${c.f.length+1}">Aucune entrée.</td></tr>`}</table></div>
  ${k==='emp'&&showSal&&L.length?`<p><b>Masse salariale : ${F(L.reduce((a,e)=>a+(+e.sal||0),0))} FCFA / mois</b></p>`:''}`}
 function crAdd(k){if(!isA())return toast(NOA);const o={id:db.nid++};CR[k].f.forEach(f=>o[f[0]]=f[2]?(+$('#cr_'+f[0]).value||0):$('#cr_'+f[0]).value.trim());if(!o.nom)return toast('Saisis un nom');db[k].push(o);save();toast('Ajouté');crud(k)}
 function crEd(k,id){if(!isA())return toast(NOA);const e=db[k].find(x=>x.id===id);for(const f of CR[k].f){const v=prompt(f[1],e[f[0]]??'');if(v===null)return;e[f[0]]=f[2]?(+v||0):v.trim()}save();crud(k)}
