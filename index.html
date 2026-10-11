@@ -424,9 +424,15 @@ function pdfFrom(items,nom){if(typeof html2pdf==='undefined')return toast('Créa
    blk((start?it.pre:'')+'<table>'+hd+it.rows.slice(i,i+k).join('')+(last?it.foot:'')+'</table>');
    y+=ov+c+(last?fh:0);i+=k;start=false;if(!last)brk()}
  })}finally{pr.remove()}
- const w=document.createElement('div');w.style.cssText='background:#fff;color:#000;width:700px';w.innerHTML=PDF_CSS+'<div class="pr">'+out.join('')+'<div style="height:40px"></div></div>';
+ const pages=[];out.forEach(h=>{if(!pages.length||h.indexOf('blk pbk"')>-1)pages.push([]);pages[pages.length-1].push(h.replace('blk pbk"','blk"'))});
+ const mk=h=>{const d=document.createElement('div');d.style.cssText='background:#fff;color:#000;width:700px';d.innerHTML=PDF_CSS+'<div class="pr">'+h+'</div>';return d},
+  op={margin:12,image:{type:'jpeg',quality:0.98},html2canvas:{scale:2,useCORS:true},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}};
  toast('Création du PDF…');
- html2pdf().set({margin:12,filename:nom,image:{type:'jpeg',quality:0.98},html2canvas:{scale:2,useCORS:true},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},pagebreak:{mode:['css'],before:'.pbk'}}).from(w).outputPdf('blob').then(b=>dlBlob(b,nom)).catch(e=>{console.error(e);toast('Échec de la création du PDF')})}
+ (async()=>{let pdf=null;
+  for(let i=0;i<pages.length;i++){const wk=html2pdf().set(op).from(mk(pages[i].join('')));
+   if(!pdf){pdf=await wk.toPdf().get('pdf');while(pdf.getNumberOfPages()>1)pdf.deletePage(pdf.getNumberOfPages())}
+   else{const c=await wk.toCanvas().get('canvas');pdf.addPage();pdf.addImage(c.toDataURL('image/jpeg',0.98),'JPEG',12,12,186,186*c.height/c.width);c.width=c.height=0}}
+  return pdf.output('blob')})().then(b=>dlBlob(b,nom)).catch(e=>{console.error(e);toast('Échec de la création du PDF')})}
 function recapCalc(){const dm=db.docs.filter(d=>d.date.slice(0,7)===rcM),dv=dm.filter(d=>d.type==='devis'),fa=dm.filter(d=>d.type==='facture'&&d.statut!=='annule'),T=a=>a.reduce((s,d)=>s+tot(d).ttc,0),enc=fa.reduce((s,d)=>s+tot(d).ttc-solde(d),0),by={};
  fa.forEach(d=>{const n=cli(d.clientId).nom;by[n]=(by[n]||0)+tot(d).ttc});return{dv,fa,T,enc,top:Object.entries(by).sort((a,b)=>b[1]-a[1]).slice(0,5)}}
 function recap(){if(!isA())return toast(NOA);const {dv,fa,T,enc,top}=recapCalc(),cd=(n,t)=>`<div class="card"><b>${n}</b><span>${t}</span></div>`;
